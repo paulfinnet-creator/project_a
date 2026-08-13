@@ -1,0 +1,105 @@
+// Prisma schema for Naija Adventure Tours
+// Local dev uses SQLite (zero setup). For production, change the datasource
+// provider to "postgresql" and set DATABASE_URL to a Postgres connection string —
+// no other changes are required since no SQLite-only features are used.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TOURIST
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentProviderName {
+  NOWPAYMENTS
+  MOCK
+}
+
+enum PaymentStatus {
+  WAITING
+  CONFIRMING
+  CONFIRMED
+  FAILED
+  EXPIRED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  phone        String?
+  passwordHash String
+  role         Role      @default(TOURIST)
+  createdAt    DateTime  @default(now())
+  bookings     Booking[]
+}
+
+model TourPackage {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  summary       String
+  description   String
+  itinerary     String
+  location      String
+  durationDays  Int
+  price         Decimal
+  maxGroupSize  Int
+  imageUrl      String
+  gallery       String // JSON-encoded string[]
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  bookings      Booking[]
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  user              User          @relation(fields: [userId], references: [id])
+  userId            String
+  tourPackage       TourPackage   @relation(fields: [packageId], references: [id])
+  packageId         String
+  travelDate        DateTime
+  numberOfTravelers Int
+  travelerNotes     String?
+  totalAmount       Decimal
+  status            BookingStatus @default(PENDING_PAYMENT)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  payments          Payment[]
+}
+
+model Payment {
+  id                String              @id @default(cuid())
+  booking           Booking             @relation(fields: [bookingId], references: [id])
+  bookingId         String
+  provider          PaymentProviderName
+  providerPaymentId String
+  payCurrency       String?
+  payAmount         Decimal?
+  status            PaymentStatus       @default(WAITING)
+  rawPayload        String? // JSON-encoded raw provider payload
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
