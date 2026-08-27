@@ -31,7 +31,7 @@ export default function RegisterPage() {
       <form action={formAction} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="name">Full name</Label>
-          <Input id="name" name="name" placeholder="Ada Okafor" required />
+          <Input id="name" name="name" placeholder="Enter your full name" required />
           {state.fieldErrors?.name && (
             <p className="text-sm text-destructive">{state.fieldErrors.name}</p>
           )}
